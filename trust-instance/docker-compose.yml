@@ -1,0 +1,42 @@
+version: "3.0"
+services: 
+
+  ffxi-server:
+    depends_on:
+      - ffxi-sql
+    #image: vulcan/ffxi:trust-214744f60b
+    #image: vulcan/ffxi:trust-312884c8a4
+    image: vulcan/ffxi:trust-testing
+    ports:
+      - 54230:54230/tcp
+      - 54231:54231/tcp
+      - 54001:54001/tcp
+      - 54002:54002/tcp
+      - 54230:54230/udp
+    volumes:
+      - ffxi-trust-conf-01:/opt/topaz/conf
+      - ffxi-trust-logs-01:/opt/topaz/log
+    networks:
+      - frontend
+      - backend
+
+  ffxi-sql:
+    image: mysql:5.7
+    ports:
+      - 3376:3306/tcp
+    volumes:
+      - ffxi-trust-sql-01:/var/lib/mysql
+    networks:
+      - frontend
+      - backend
+
+volumes:
+  ffxi-trust-conf-01:
+  ffxi-trust-logs-01:
+  ffxi-trust-sql-01:
+
+networks:
+  frontend:
+  backend:
+
+# EOF
