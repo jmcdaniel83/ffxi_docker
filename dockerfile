@@ -8,7 +8,8 @@ FROM ubuntu:20.04 AS build-stage
 WORKDIR /opt
 
 # set the timezone in the container
-COPY Chicago /etc/localtime
+ENV TZ=America/Chicago
+ENV DEBIAN_FRONTEND="noninteractive"
 
 # build arguments for the compile
 ARG GIT_REPO=https://github.com/topaz-next/topaz.git
@@ -61,6 +62,7 @@ RUN set -x \
     pkg-config \
     python3 \
     python3-pip \
+    tzdata \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
 
@@ -109,7 +111,8 @@ FROM ubuntu:20.04 AS instance
 WORKDIR /opt
 
 # set the timezone in the container
-COPY Chicago /etc/localtime
+ENV TZ=America/Chicago
+ENV DEBIAN_FRONTEND="noninteractive"
 
 # build arguments for the instance
 ARG GIT_REPO=https://github.com/topaz-next/topaz.git
@@ -146,6 +149,7 @@ RUN set -x \
     python3 \
     python3-pip \
     screen \
+    tzdata \
     vim \
  && rm -rf /var/lib/apt/lists/*
 
