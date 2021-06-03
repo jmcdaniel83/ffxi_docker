@@ -2,7 +2,7 @@
 # Build Stage
 # ------------------------------------------------------------------------------
 
-FROM debian:10.4 AS build-stage
+FROM ubuntu:20.04 AS build-stage
 
 # start with setting up new services
 WORKDIR /opt
@@ -11,8 +11,9 @@ WORKDIR /opt
 COPY Chicago /etc/localtime
 
 # build arguments for the compile
-ARG GIT_REPO=https://github.com/project-topaz/topaz.git
-ARG GIT_VERSION=trust
+ARG GIT_REPO=https://github.com/topaz-next/topaz.git
+ARG GIT_BRANCH=canary
+ARG GIT_COMMIT=none
 
 # installation options
 ENV INSTALL_DIR=/opt/topaz
@@ -22,33 +23,52 @@ ENV TOPAZ_GROUP=topaz
 ENV TOPAZ_PASSWORD=topaz
 ENV TOPAZ_IP=127.0.0.1
 
+# Avoid any UI since we don't have one
+ENV DEBIAN_FRONTEND=noninteractive
+
 RUN set -x \
+ && echo building with arguments: \
+ && echo GIT_REPO=${GIT_REPO} \
+ && echo GIT_BRANCH=${GIT_BRANCH} \
+ && echo GIT_COMMIT=${GIT_COMMIT}
+
+RUN set -x \
+ && apt-get clean \
  && apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y \
+    software-properties-common \
     apt-transport-https \
+ && add-apt-repository ppa:ubuntu-toolchain-r/test \
  && apt-get update \
  && apt-get install -y \
     autoconf \
     build-essential \
-    gcc \
+    cmake \
+    dnsutils \
+    g++ \
+    g++-9 \
     git \
-    htop \
-    liblua5.1-dev \
-    libmariadb-dev \
+    libluajit-5.1-dev \
     libmariadb-dev-compat \
-    libmariadbclient-dev \
     libssl-dev \
     libzmq3-dev \
-    lua5.1 \
-    luajit \
+    luajit-5.1-dev \
     luarocks \
-    mariadb-client \
     mariadb-server \
     nano \
+    net-tools \
     pkg-config \
-    screen \
+    python3 \
+    python3-pip \
+    zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
+
+# setup the tools to default to latest verson
+RUN set -x \
+ && /usr/bin/gcc-9 --version \
+ && /usr/bin/g++-9 --version \
+ && python3 --version
 
 # get the Lua BitOp extension installed
 RUN set -x \
@@ -63,11 +83,17 @@ USER ${TOPAZ_USER}
 
 # establish our checkout of the code (git version)
 RUN set -x \
- && git clone -b ${GIT_VERSION} --recursive ${GIT_REPO} \
+ && export CC=/usr/bin/gcc-9 \
+ && export CXX=/usr/bin/g++-9 \
+ && export CXXFLAGS=" -pthread" \
+ && git clone -b ${GIT_BRANCH} --recursive ${GIT_REPO} \
  && cd ${INSTALL_DIR} \
- && sh autogen.sh \
- && ./configure CXXFLAGS=" -pthread" \
- && make -j $(nproc)
+ && mkdir build \
+ && cd build \
+ && cmake .. \
+ && make -j $(nproc) \
+ && cd .. \
+ && rm -rf ./build
 
 # create our database (this assumes that the database already exists)
 
@@ -77,7 +103,7 @@ RUN set -x \
 # ------------------------------------------------------------------------------
 
 # generate our instance container
-FROM debian:10.4 AS instance
+FROM ubuntu:20.04 AS instance
 
 # start with setting up new services
 WORKDIR /opt
@@ -86,8 +112,9 @@ WORKDIR /opt
 COPY Chicago /etc/localtime
 
 # build arguments for the instance
-ARG GIT_REPO=https://github.com/project-topaz/topaz.git
-ARG GIT_VERSION=trust
+ARG GIT_REPO=https://github.com/topaz-next/topaz.git
+ARG GIT_BRANCH=canary
+ARG GIT_COMMIT=none
 
 # installation options
 ENV INSTALL_DIR=/opt/topaz
@@ -104,15 +131,20 @@ ENV MYSQL_PASS=topazisawesome
 ENV MYSQL_DB=tpzdb
 
 RUN set -x \
+ && apt-get clean \
  && apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y \
     git \
     htop \
     liblua5.1 \
+    libluajit-5.1-2 \
     libmariadb3 \
     libzmq5 \
     luarocks \
+    mariadb-client \
+    python3 \
+    python3-pip \
     screen \
     vim \
  && rm -rf /var/lib/apt/lists/*
@@ -142,6 +174,7 @@ COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/topa
 # some resource files are needed as well
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/compress.dat .
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/decompress.dat .
+COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/tools/requirements.txt ./requirements.txt
 
 # copy our custom items
 COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} entry_point.sh ${INSTALL_DIR}/entry_point.sh
@@ -149,6 +182,11 @@ COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} load_db.sh ${INSTALL_DIR}/load_db.sh
 COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} server_message.conf ./conf/server_message.conf
 
 USER ${TOPAZ_USER}
+
+# install our python requirements
+RUN set -x \
+ && pip3 install -r requirements.txt \
+ && rm requirements.txt
 
 # setting up the configuration
 RUN set -x \
@@ -167,11 +205,11 @@ RUN set -x \
 # update the timestamp format for the logs
 RUN set -x \
  && sed -i 's|\[%d/%b %H\:%M\]|[%Y%m%d_%H%M%S]|g' conf/*.conf \
- && sed -i 's|\[%d/%b\] \[%H\:%M\:%S\]|[%Y%m%d_%H%M%S]|g' conf/*.conf 
+ && sed -i 's|\[%d/%b\] \[%H\:%M\:%S\]|[%Y%m%d_%H%M%S]|g' conf/*.conf
 
 # set the version numbergit
 RUN set -x \
- && git ls-remote ${GIT_REPO} refs/heads/${GIT_VERSION} | cut -c1-10 \
+ && git ls-remote ${GIT_REPO} refs/heads/${GIT_BRANCH} | cut -c1-10 \
  && export time_stamp=$(date +%Y%m%d) \
  && sed -i 's/%date%/'${time_stamp}'/g' conf/server_message.conf
 
