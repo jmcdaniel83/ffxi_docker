@@ -13,7 +13,7 @@ export VERSION="0.1.0"
 build_image() {
     docker build \
         --build-arg GIT_REPO=$1 \
-        --build-arg GIT_VERSION=$2 \
+        --build-arg GIT_BRANCH=$2 \
         -t vulcan/ffxi:$3 .
 }
 
@@ -31,10 +31,6 @@ get_commit_sha() {
     git ls-remote $1 refs/heads/$2 | cut -c1-10
 }
 
-
-
-#GIT_REPO=https://github.com/project-topaz/topaz.git
-#tags="release canary trust"
 GIT_REPO=https://github.com/topaz-next/topaz.git
 tags="release canary"
 
@@ -56,40 +52,4 @@ for tag in $tags; do
     build_image $GIT_REPO $tag $docker_tag
 done
 
-
-
-# GIT_REPO=https://github.com/zach2good/topaz.git
-# tags='trust_full_gambit'
-# tag-version=get_commit_sha ${GIT_REPO} ${tags}
-# build_image ${GIT_REPO} ${tags}
-
-# trust_version=`git ls-remote ${GIT_REPO} refs/heads/${GIT_VERSION} | cut -c1-10`
-
-# docker build \
-#     --build-arg GIT_VERSION=trust \
-#     -t vulcan/ffxi:trust-latest .
-# #docker build --build-arg GIT_VERSION=trust  -t vulcan/ffxi:trust-2d27a3ee7a .
-# #1edc824b9d
-
-# docker build \
-#     --build-arg GIT_VERSION=canary \
-#     -t vulcan/ffxi:canary-latest .
-
-# docker build \
-#     --build-arg GIT_VERSION=release \
-#     -t vulcan/ffxi:release-latest .
-
-# # test gambits
-# docker build \
-#     --build-arg GIT_REPO=https://github.com/zach2good/topaz.git \
-#     --build-arg GIT_VERSION=trust_full_gambit \
-#     -t vulcan/ffxi:trust-testing-latest .
-
-# #docker build -t vulcan/ffxi:canary-latest --build-arg GIT_VERSION=canary .
-# #docker build -t vulcan/ffxi:canary-5d29f15540 --build-arg GIT_VERSION=canary .
-
-# #docker build -t vulcan/ffxi:release-latest --build-arg GIT_VERSION=release .
-# #docker build -t vulcan/ffxi:release-bdf076b9c6 --build-arg GIT_VERSION=release .
-
 # EOF
-

@@ -16,7 +16,7 @@ git_tag=$1
 build_image() {
     docker build \
         --build-arg GIT_REPO=$1 \
-        --build-arg GIT_VERSION=$2 \
+        --build-arg GIT_BRANCH=$2 \
         -t vulcan/ffxi:$3 .
 }
 
