@@ -9,6 +9,8 @@
 #     or need to start multiple services in the one container
 trap "echo shutting down..." HUP INT QUIT TERM
 
+INSTALL_DIR='/opt/topaz'
+
 CONNECT_LOG=log/login-server.log
 SEARCH_LOG=log/search-server.log
 GAME_LOG=log/map-server.log
@@ -18,14 +20,15 @@ SEARCH_PID=''
 GAME_PID=''
 
 function init {
-   if [ ! -d "/opt/topaz.trust/log" ]; then
-      makedir -p /opt/topaz.trust/log
+   if [ ! -d "${INSTALL_DIR}/log" ]; then
+      mkdir -p ${INSTALL_DIR}/log
    fi
 
    # make sure that the files exist for our logs
-   touch ${CONNECT_LOG}
-   touch ${SEARCH_LOG}
-   touch ${GAME_LOG}
+   set -x \
+    && touch ${CONNECT_LOG} \
+    && touch ${SEARCH_LOG} \
+    && touch ${GAME_LOG}
 }
 
 function start_server {
@@ -38,6 +41,7 @@ function start_server {
 
    screen -dmS topaz_game ./topaz_game --log ${GAME_LOG} &
    GAME_PID=$!
+
 }
 
 function stop_server {
