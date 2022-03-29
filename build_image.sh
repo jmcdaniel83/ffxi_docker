@@ -2,7 +2,12 @@
 export VERSION="0.1.0"
 
 # $1 - The git tag that we are attempting to build
-git_tag=$1
+git_branch=$1
+
+if [ -z ${git_branch} ]; then
+  echo defautling to base branch...
+  git_branch=base
+fi
 
 # Public: builds our current docker image.
 #
@@ -34,21 +39,21 @@ get_commit_sha() {
     git ls-remote $1 refs/heads/$2 | cut -c1-10
 }
 
-GIT_REPO=https://github.com/project-topaz/topaz.git
-
-echo Building ${git_tag}...
+GIT_REPO=https://github.com/LandSandBoat/server.git
 
 # get the version of our current tag that is building
-version=$(get_commit_sha ${GIT_REPO} ${git_tag})
+version=$(get_commit_sha ${GIT_REPO} ${git_branch})
+
+echo Building ${git_branch}:${version}...
 
 # generate our docker tag (latest)
-docker_tag="${git_tag}-latest"
+docker_tag="${git_branch}-latest"
 ## build the image
-build_image $GIT_REPO $git_tag $docker_tag
+build_image $GIT_REPO $git_branch $docker_tag
 
 # generate our docker tag (version)
-docker_tag="${git_tag}-${version}"
+docker_tag="${git_branch}-${version}"
 ## build the image
-build_image $GIT_REPO $git_tag $docker_tag
+build_image $GIT_REPO $git_branch $docker_tag
 
 # EOF
