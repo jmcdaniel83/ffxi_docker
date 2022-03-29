@@ -1,0 +1,6 @@
+# project wide ignore file
+
+# linux swap files
+*.swp
+
+# EOIF
