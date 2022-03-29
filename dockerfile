@@ -43,19 +43,18 @@ RUN set -x \
  && add-apt-repository ppa:ubuntu-toolchain-r/test \
  && apt-get update \
  && apt-get install -y \
-    autoconf \
-    build-essential \
+    clang-11 \
     cmake \
     dnsutils \
-    g++ \
-    g++-9 \
     git \
+    liblua5.1-dev \
     libluajit-5.1-dev \
     libmariadb-dev-compat \
     libssl-dev \
     libzmq3-dev \
     luajit-5.1-dev \
     luarocks \
+    make \
     mariadb-server \
     nano \
     net-tools \
@@ -66,14 +65,19 @@ RUN set -x \
     zlib1g-dev \
  && rm -rf /var/lib/apt/lists/*
 
+# Use Clang 11
+ENV CC=/usr/bin/clang-11
+ENV CXX=/usr/bin/clang++-11
+
 # setup the tools to default to latest verson
 RUN set -x \
- && /usr/bin/gcc-9 --version \
- && /usr/bin/g++-9 --version \
+ && ${CC} --version \
+ && ${CXX} --version \
  && python3 --version
 
 # get the Lua BitOp extension installed
 RUN set -x \
+ && git config --global url.https://github.com/.insteadOf git://github.com/ \
  && luarocks install luabitop
 
 # make the instance the new user
@@ -85,8 +89,6 @@ USER ${TOPAZ_USER}
 
 # establish our checkout of the code (git version)
 RUN set -x \
- && export CC=/usr/bin/gcc-9 \
- && export CXX=/usr/bin/g++-9 \
  && export CXXFLAGS=" -pthread" \
  && git clone -b ${GIT_BRANCH} --recursive ${GIT_REPO} \
  && cd ${INSTALL_DIR} \
@@ -141,6 +143,7 @@ RUN set -x \
     git \
     htop \
     liblua5.1 \
+    liblua5.1-dev \
     libluajit-5.1-2 \
     libmariadb3 \
     libzmq5 \
@@ -155,6 +158,7 @@ RUN set -x \
 
 # get the Lua BitOp extension installed
 RUN set -x \
+ && git config --global url.https://github.com/.insteadOf git://github.com/ \
  && luarocks install luabitop
 
 # make the instance the new user, and setup folder structure
