@@ -31,8 +31,8 @@ get_commit_sha() {
     git ls-remote $1 refs/heads/$2 | cut -c1-10
 }
 
-GIT_REPO=https://github.com/topaz-next/topaz.git
-tags="release canary"
+GIT_REPO=https://github.com/LandSandBoat/server.git
+tags="base"
 
 for tag in $tags; do
     echo Building ${tag}...
