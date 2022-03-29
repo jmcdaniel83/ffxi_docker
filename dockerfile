@@ -9,15 +9,15 @@ WORKDIR /opt
 
 # set the timezone in the container
 ENV TZ=America/Chicago
-ENV DEBIAN_FRONTEND="noninteractive"
+#ENV DEBIAN_FRONTEND="noninteractive"
 
 # build arguments for the compile
-ARG GIT_REPO=https://github.com/topaz-next/topaz.git
-ARG GIT_BRANCH=canary
+ARG GIT_REPO=https://github.com/LandSandBoat/server.git
+ARG GIT_BRANCH=base
 ARG GIT_COMMIT=none
 
 # installation options
-ENV INSTALL_DIR=/opt/topaz
+ENV INSTALL_DIR=/opt/server
 # user set options
 ENV TOPAZ_USER=topaz
 ENV TOPAZ_GROUP=topaz
@@ -115,12 +115,12 @@ ENV TZ=America/Chicago
 ENV DEBIAN_FRONTEND="noninteractive"
 
 # build arguments for the instance
-ARG GIT_REPO=https://github.com/topaz-next/topaz.git
-ARG GIT_BRANCH=canary
+ARG GIT_REPO=https://github.com/LandSandBoat/server.git
+ARG GIT_BRANCH=base
 ARG GIT_COMMIT=none
 
 # installation options
-ENV INSTALL_DIR=/opt/topaz
+ENV INSTALL_DIR=/opt/server
 # user set options
 ENV TOPAZ_IP=192.168.2.37
 ENV TOPAZ_USER=topaz
@@ -169,7 +169,9 @@ WORKDIR ${INSTALL_DIR}
 
 # install the topaz package
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/scripts ./scripts
+COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/modules ./modules
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/sql ./sql
+COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/tools ./tools
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/conf/default ./conf
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/topaz_connect .
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/topaz_game .
@@ -192,13 +194,18 @@ RUN set -x \
  && pip3 install -r requirements.txt \
  && rm requirements.txt
 
+# setup the new LUA configuration files
+RUN set -x \
+ && mv ${INSTALL_DIR}/scripts/settings/default/* ${INSTALL_DIR}/scripts/settings/ \
+ && rm -fR ${INSTALL_DIR}/scripts/settings/default
+
 # setting up the configuration
 RUN set -x \
  && sed -i 's/mysql_host:      127.0.0.1/mysql_host:      '${MYSQL_IP}'/g' conf/*.conf \
  && sed -i 's/mysql_port:      3306/mysql_port:      '${MYSQL_PORT}'/g' conf/*.conf \
  && sed -i 's/mysql_login:     root/mysql_login:     '${MYSQL_USER}'/g' conf/*.conf \
  && sed -i 's/mysql_password:  root/mysql_password:  '${MYSQL_PASS}'/g' conf/*.conf \
- && sed -i 's/mysql_database:  tpzdb/mysql_database:  '${MYSQL_DB}'/g' conf/*.conf
+ && sed -i 's/mysql_database:  xidb/mysql_database:  '${MYSQL_DB}'/g' conf/*.conf
 
 # update the SQL scripts to work with MySQL 5.7
 RUN set -x \
@@ -213,12 +220,12 @@ RUN set -x \
 
 # set the version numbergit
 RUN set -x \
- && git ls-remote ${GIT_REPO} refs/heads/${GIT_BRANCH} | cut -c1-10 \
+ && export commit_version=$(git ls-remote ${GIT_REPO} refs/heads/${GIT_BRANCH} | cut -c1-10) \
  && export time_stamp=$(date +%Y%m%d) \
- && sed -i 's/%date%/'${time_stamp}'/g' conf/server_message.conf
+ && sed -i 's|%date%|['${commit_version}'] ('${time_stamp}')|g' conf/server_message.conf
 
 # set the volumes available
-VOLUME [ "/opt/topaz/conf", "/opt/topaz/log" ]
+VOLUME [ "/opt/server/conf", "/opt/server/log" ]
 
 # make our ports available
 EXPOSE 54230/tcp
@@ -228,7 +235,7 @@ EXPOSE 54002/tcp
 
 EXPOSE 54230/udp
 
-ENTRYPOINT [ "/opt/topaz/entry_point.sh" ]
+ENTRYPOINT [ "/opt/server/entry_point.sh" ]
 CMD [ "server" ]
 
 # captures the latest commit ID with respect to this branch
