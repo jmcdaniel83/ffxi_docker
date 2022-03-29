@@ -9,7 +9,7 @@
 #     or need to start multiple services in the one container
 trap "echo shutting down..." HUP INT QUIT TERM
 
-INSTALL_DIR='/opt/topaz'
+INSTALL_DIR='/opt/server'
 
 CONNECT_LOG=log/login-server.log
 SEARCH_LOG=log/search-server.log
