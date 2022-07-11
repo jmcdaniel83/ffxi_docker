@@ -9,7 +9,6 @@ WORKDIR /opt
 
 # set the timezone in the container
 ENV TZ=America/Chicago
-#ENV DEBIAN_FRONTEND="noninteractive"
 
 # build arguments for the compile
 ARG GIT_REPO=https://github.com/LandSandBoat/server.git
@@ -18,6 +17,7 @@ ARG GIT_COMMIT=none
 
 # installation options
 ENV INSTALL_DIR=/opt/server
+
 # user set options
 ENV TOPAZ_USER=topaz
 ENV TOPAZ_GROUP=topaz
