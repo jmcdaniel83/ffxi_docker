@@ -3,4 +3,12 @@
 # linux swap files
 *.swp
 
+# commit history files
+commit
+commit_history
+
+# generated files
+issues.log
+powertop.html
+
 # EOIF
