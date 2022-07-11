@@ -33,31 +33,27 @@ function init {
 
 function start_server {
    # run our screens for the server
-   screen -dmS topaz_connect ./topaz_connect --log ${CONNECT_LOG} &
+   screen -dmS xi_connect ./xi_connect --log ${CONNECT_LOG} &
    CONNECT_PID=$!
 
-   screen -dmS topaz_search ./topaz_search --log ${SEARCH_LOG} &
+   screen -dmS xi_search ./xi_search --log ${SEARCH_LOG} &
    SEARCH_PID=$!
 
-   screen -dmS topaz_game ./topaz_game --log ${GAME_LOG} &
+   screen -dmS xi_map ./xi_map --log ${GAME_LOG} &
    GAME_PID=$!
 
 }
 
 function stop_server {
    ## provides a <ctrl+c> <enter> to the screens
-   # using the PIDs stored, will shutdown our instances
    echo Shutting down game...
-   #screen -S ${GAME_PID}.topaz_game -X stuff $'\003\015'
-   screen -S topaz_game -X stuff $'\003\015'
+   screen -S xi_map -X stuff $'\003\015'
 
    echo Shutting down search...
-   #screen -S ${SEARCH_PID}.topaz_search -X stuff $'\003\015'
-   screen -S topaz_search -X stuff $'\003\015'
+   screen -S xi_search -X stuff $'\003\015'
 
    echo Shutting down connect...
-   #screen -S ${CONNECT_PID}.topaz_connect -X stuff $'\003\015'
-   screen -S topaz_connect -X stuff $'\003\015'
+   screen -S xi_connect -X stuff $'\003\015'
 }
 
 if [ "$1" = 'server' ]; then
