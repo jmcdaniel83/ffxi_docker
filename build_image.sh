@@ -110,10 +110,19 @@ fi
 get_prev_commit
 
 # make sure that we have a new commit to build
+rebuilding=0
 if [[ "${git_commit}" == "${prev_commit}" ]]; then
-  # we have nothing new to build
-  echo "no new commits; skipping..."
-  exit 0
+  echo -n "no new commits, rebuild? (y/n) "
+  read rebuild
+
+  if [[ "$rebuild" == "Y" || "$rebuild" == "y" ]]; then
+    echo "rebuilding..."
+    rebuilding=1
+  else
+    # we have nothing new to build
+    echo "skipping..."
+    exit 0
+  fi
 fi
 
 # =====================================
@@ -137,10 +146,12 @@ latest_tag="${git_branch}-latest"
 build_image $latest_tag $git_branch $git_commit
 push_image ${latest_tag}
 
-# update our files
-## update commit file
-echo ${git_commit} > commit
-## add to history file
-echo ${git_commit} >> commit_history
+# update our files; if not rebuilding
+if [ $rebuilding -ne 1 ]; then
+  ## update commit file
+  echo ${git_commit} > commit
+  ## add to history file
+  echo ${git_commit} >> commit_history
+fi
 
 # EOF
