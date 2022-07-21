@@ -1,0 +1,41 @@
+-----------------------------------
+-- NETWORK SETTINGS
+-----------------------------------
+-- All settings are attached to the `xi.settings` object. This is published
+-- globally, and be accessed from C++ and any script.
+--
+-- This file is concerned mainly with networking between the database, client,
+-- and server executables.
+-----------------------------------
+
+xi = xi or {}
+xi.settings = xi.settings or {}
+
+xi.settings.network =
+{
+    -- SQL host parameters
+    SQL_HOST     = "192.168.2.37",
+    SQL_PORT     = 3306,
+    SQL_LOGIN    = "topazadmin",
+    SQL_PASSWORD = "topazisawesome",
+    SQL_DATABASE = "tpzdb",
+
+    -- TCP/IP parameters for the server
+    LOGIN_DATA_IP   = "0.0.0.0",
+    LOGIN_DATA_PORT = 54230,
+    LOGIN_VIEW_IP   = "0.0.0.0",
+    LOGIN_VIEW_PORT = 54001,
+    LOGIN_AUTH_IP   = "0.0.0.0",
+    LOGIN_AUTH_PORT = 54231,
+
+    -- port used for our map instance
+    MAP_PORT = 54230,
+
+    -- port used for our search instance
+    SEARCH_PORT = 54002,
+
+    -- Central message server settings (ensure these are the same on both all
+    -- map servers and the central (lobby) server)
+    ZMQ_IP   = "127.0.0.1",
+    ZMQ_PORT = 54003,
+}
