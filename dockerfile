@@ -176,7 +176,8 @@ COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/scri
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/modules ./modules
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/sql ./sql
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/tools ./tools
-COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/conf/default ./conf
+COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/src/common/packet_tcp.conf ./src/common/packet_tcp.conf
+COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/src/common/packet_udp.conf ./src/common/packet_udp.conf
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/xi_connect .
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/xi_map .
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/xi_search .
@@ -187,9 +188,9 @@ COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/deco
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/tools/requirements.txt ./requirements.txt
 
 # copy our custom items
-COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} entry_point.sh ${INSTALL_DIR}/entry_point.sh
-COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} load_db.sh ${INSTALL_DIR}/load_db.sh
-COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} server_message.conf ./conf/server_message.conf
+COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} entry_point.sh ./entry_point.sh
+COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} load_db.sh ./load_db.sh
+COPY --chown=${TOPAZ_USER}:${TOPAZ_GROUP} settings ./settings
 
 USER ${TOPAZ_USER}
 
@@ -198,38 +199,21 @@ RUN set -x \
  && pip3 install -r requirements.txt \
  && rm requirements.txt
 
-# setup the new LUA configuration files
-RUN set -x \
- && mv ${INSTALL_DIR}/scripts/settings/default/* ${INSTALL_DIR}/scripts/settings/ \
- && rm -fR ${INSTALL_DIR}/scripts/settings/default
-
-# setting up the configuration
-RUN set -x \
- && sed -i 's/mysql_host:      127.0.0.1/mysql_host:      '${MYSQL_IP}'/g' conf/*.conf \
- && sed -i 's/mysql_port:      3306/mysql_port:      '${MYSQL_PORT}'/g' conf/*.conf \
- && sed -i 's/mysql_login:     root/mysql_login:     '${MYSQL_USER}'/g' conf/*.conf \
- && sed -i 's/mysql_password:  root/mysql_password:  '${MYSQL_PASS}'/g' conf/*.conf \
- && sed -i 's/mysql_database:  xidb/mysql_database:  '${MYSQL_DB}'/g' conf/*.conf
-
 # update the SQL scripts to work with MySQL 5.7
 RUN set -x \
  && sed -i "s/datetime NOT NULL DEFAULT '0000-00-00 00:00:00',/DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,/ig" sql/*.sql \
  && sed -i "s/datetime NOT NULL DEFAULT current_timestamp(),/DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,/ig" sql/*.sql \
- && sed -i "s/DATETIME NOT NULL,/DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,/ig" sql/*.sql
-
-# update the timestamp format for the logs
-RUN set -x \
- && sed -i 's|\[%d/%b %H\:%M\]|[%Y%m%d_%H%M%S]|g' conf/*.conf \
- && sed -i 's|\[%d/%b\] \[%H\:%M\:%S\]|[%Y%m%d_%H%M%S]|g' conf/*.conf
+ && sed -i "s/DATETIME NOT NULL,/DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,/ig" sql/*.sql \
+ && sed -i "s|blob DEFAULT 0|blob DEFAULT NULL|ig" sql/*.sql
 
 # set the version numbergit
 RUN set -x \
  && export commit_version=$(git ls-remote ${GIT_REPO} refs/heads/${GIT_BRANCH} | cut -c1-10) \
  && export time_stamp=$(date +%Y%m%d) \
- && sed -i 's|%date%|['${commit_version}'] ('${time_stamp}')|g' conf/server_message.conf
+ && sed -i "s|%date%|[${commit_version}] (${time_stamp})|g" settings/default/main.lua
 
 # set the volumes available
-VOLUME [ "/opt/server/conf", "/opt/server/log" ]
+VOLUME [ "/opt/server/settings", "/opt/server/log" ]
 
 # make our ports available
 EXPOSE 54230/tcp
