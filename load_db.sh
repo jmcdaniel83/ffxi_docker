@@ -1,14 +1,14 @@
 
+# root user for mysql instance
 root_user=root
-root_pass=example2
+root_pass=password
 
-db_name=tpzdb
-
+# topaz mysql credentials
+host=192.168.2.37
+port=3306
 user=topazadmin
 pass=topazisawesome
-
-host=192.168.2.37
-port=3376
+db_name=tpzdb
 
 # set pur user to the database
 echo Setting up new user...
