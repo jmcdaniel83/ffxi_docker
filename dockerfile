@@ -43,13 +43,35 @@ RUN set -x \
  && add-apt-repository ppa:ubuntu-toolchain-r/test \
  && apt-get update \
  && apt-get install -y \
+    wget \
+    curl
+
+RUN set -x \
+ && wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
+ && chmod +x mariadb_repo_setup \
+ && ./mariadb_repo_setup \
+ && rm mariadb_repo_setup
+
+#libmariadb-dev-compat \
+
+RUN set -x \
+ && apt-get clean \
+ && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y \
+    software-properties-common \
+    apt-transport-https \
+ && add-apt-repository ppa:ubuntu-toolchain-r/test \
+ && apt-get update \
+ && apt-get install -y \
+    binutils-dev \
     clang-11 \
     cmake \
     dnsutils \
     git \
     liblua5.1-dev \
     libluajit-5.1-dev \
-    libmariadb-dev-compat \
+    libmariadb-dev \
     libssl-dev \
     libzmq3-dev \
     luajit-5.1-dev \
@@ -79,6 +101,15 @@ RUN set -x \
 RUN set -x \
  && git config --global url.https://github.com/.insteadOf git://github.com/ \
  && luarocks install luabitop
+
+# install TBB (2020.2)
+RUN set -x \
+ && export CXXFLAGS=" -pthread" \
+ && git clone https://github.com/wjakob/tbb.git \
+ && cd tbb/build \
+ && cmake .. \
+ && make -j \
+ && make install
 
 # make the instance the new user
 RUN set -x \
@@ -140,11 +171,31 @@ RUN set -x \
  && apt-get update \
  && apt-get upgrade -y \
  && apt-get install -y \
+    apt-transport-https \
+ && apt-get update \
+ && apt-get install -y \
+    wget \
+    curl
+
+RUN set -x \
+ && wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
+ && chmod +x mariadb_repo_setup \
+ && ./mariadb_repo_setup \
+ && rm mariadb_repo_setup
+
+RUN set -x \
+ && apt-get clean \
+ && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y \
+    binutils \
+    cmake \
     git \
     htop \
     liblua5.1 \
     liblua5.1-dev \
     libluajit-5.1-2 \
+    libmariadb-dev \
     libmariadb3 \
     libzmq5 \
     luarocks \
@@ -170,6 +221,15 @@ RUN set -x \
 
 # change to the proper directory before copying files
 WORKDIR ${INSTALL_DIR}
+
+# install TBB (2020.2)
+RUN set -x \
+ && export CXXFLAGS=" -pthread" \
+ && git clone https://github.com/wjakob/tbb.git \
+ && cd tbb/build \
+ && cmake .. \
+ && make -j \
+ && make install
 
 # install the topaz package
 COPY --from=build-stage --chown=${TOPAZ_USER}:${TOPAZ_GROUP} ${INSTALL_DIR}/scripts ./scripts
