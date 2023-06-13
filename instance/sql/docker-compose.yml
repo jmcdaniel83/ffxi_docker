@@ -1,0 +1,24 @@
+version: "3.0"
+services:
+
+  ffxi-sql:
+    image: mysql:5.7
+    ports:
+      - 3306:3306/tcp
+    volumes:
+      - ffxi-sql-01:/var/lib/mysql
+      - ffxi-logs-01:/var/log/mysql
+    networks:
+      - frontend
+      - backend
+
+volumes:
+  ffxi-conf-01:
+  ffxi-logs-01:
+  ffxi-sql-01:
+
+networks:
+  frontend:
+  backend:
+
+# EOF

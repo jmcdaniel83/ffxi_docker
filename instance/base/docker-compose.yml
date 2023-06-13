@@ -1,0 +1,41 @@
+version: "3.0"
+services:
+
+  ffxi-server:
+    depends_on:
+      - ffxi-sql
+    image: vulcanatx/ffxi:base-latest
+    ports:
+      - 54230:54230/tcp
+      - 54231:54231/tcp
+      - 54001:54001/tcp
+      - 54002:54002/tcp
+      - 54230:54230/udp
+    #volumes:
+      #- ffxi-conf-01:/opt/server/conf
+      #- ffxi-logs-01:/opt/server/log
+    networks:
+      - frontend
+      - backend
+
+  ffxi-sql:
+    image: mysql:5.7
+    ports:
+      - 3306:3306/tcp
+    volumes:
+      - ffxi-sql-01:/var/lib/mysql
+      - ffxi-logs-01:/var/log/mysql
+    networks:
+      - frontend
+      - backend
+
+volumes:
+  ffxi-conf-01:
+  ffxi-logs-01:
+  ffxi-sql-01:
+
+networks:
+  frontend:
+  backend:
+
+# EOF
