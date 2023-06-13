@@ -14,10 +14,12 @@ INSTALL_DIR='/opt/server'
 CONNECT_LOG=log/login-server.log
 SEARCH_LOG=log/search-server.log
 GAME_LOG=log/map-server.log
+WORLD_LOG=log/world-server.log
 
 CONNECT_PID=''
 SEARCH_PID=''
 GAME_PID=''
+WORLD_PID=''
 
 function init {
    if [ ! -d "${INSTALL_DIR}/log" ]; then
@@ -28,7 +30,8 @@ function init {
    set -x \
     && touch ${CONNECT_LOG} \
     && touch ${SEARCH_LOG} \
-    && touch ${GAME_LOG}
+    && touch ${GAME_LOG} \
+    && touch ${WORLD_LOG}
 }
 
 function start_server {
@@ -42,10 +45,14 @@ function start_server {
    screen -dmS xi_map ./xi_map --log ${GAME_LOG} &
    GAME_PID=$!
 
+   screen -dmS xi_world ./xi_world --log ${WORLD_LOG}
 }
 
 function stop_server {
    ## provides a <ctrl+c> <enter> to the screens
+   echo Shutting down world...
+   screen -S xi_world -X stuff $'\003\015'
+
    echo Shutting down game...
    screen -S xi_map -X stuff $'\003\015'
 
