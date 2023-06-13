@@ -86,6 +86,19 @@ get_prev_commit() {
   prev_commit=$(while read -r line; do echo "$line"; done < "./commit")
 }
 
+# our extra version that we are provided to guarantee unique build
+extra_ver=0
+
+# Will read the extra version information file if we are rebuilding to guarantee
+# a unique indentifier for building.
+#
+# sets the global variable extra_ver with the extra version detail
+#
+get_extra_version() {
+  # will get the previous commit that was placed into the commit file
+  extra_ver=$(while read -r line; do echo "$line"; done < "./extra_version")
+}
+
 # =====================================
 # Argument Handling
 # =====================================
@@ -125,6 +138,18 @@ if [[ "${git_commit}" == "${prev_commit}" ]]; then
   fi
 fi
 
+if [ ${rebuilding} == 1 ]; then
+  # read our extra version
+  get_extra_version
+
+  # update the current version and add to our file
+  val=$((extra_ver + 1))
+  echo $val > extra_version
+else
+  # then reset our extra version
+  echo "1" > extra_version
+fi
+
 # =====================================
 # Main
 # =====================================
@@ -132,10 +157,14 @@ fi
 # log in to the repostory
 log_in
 
-echo Building ${git_branch}-${git_commit}...
-
 # generate our docker tag (version)
 version_tag="${git_branch}-${git_commit}"
+if [ ${rebuilding} == 1 ]; then
+  version_tag="${git_branch}-${git_commit}-${extra_ver}"
+fi
+
+echo Building ${version_tag}...
+
 ## build the image
 build_image $version_tag $git_branch $git_commit
 push_image ${version_tag}
