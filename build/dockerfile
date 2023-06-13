@@ -1,0 +1,130 @@
+# ------------------------------------------------------------------------------
+# Development Image
+# ------------------------------------------------------------------------------
+
+FROM ubuntu:22.04
+
+# start with setting up new services
+WORKDIR /opt
+
+# set the timezone in the container
+ENV TZ=America/Chicago
+
+# build arguments for the compile
+ARG GIT_REPO=https://github.com/LandSandBoat/server.git
+ARG GIT_BRANCH=base
+ARG GIT_COMMIT=none
+
+# installation options
+ENV INSTALL_DIR=/opt/server
+
+# user set options
+ENV TOPAZ_USER=topaz
+ENV TOPAZ_GROUP=topaz
+ENV TOPAZ_PASSWORD=topaz
+ENV TOPAZ_IP=127.0.0.1
+
+# Avoid any UI since we don't have one
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN set -x \
+ && echo building with arguments: \
+ && echo GIT_REPO=${GIT_REPO} \
+ && echo GIT_BRANCH=${GIT_BRANCH} \
+ && echo GIT_COMMIT=${GIT_COMMIT}
+
+RUN set -x \
+ && apt-get clean \
+ && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y \
+    software-properties-common \
+    apt-transport-https \
+ && add-apt-repository ppa:ubuntu-toolchain-r/test \
+ && apt-get update \
+ && apt-get install -y \
+    wget \
+    curl
+
+RUN set -x \
+ && wget https://downloads.mariadb.com/MariaDB/mariadb_repo_setup \
+ && chmod +x mariadb_repo_setup \
+ && ./mariadb_repo_setup \
+ && rm mariadb_repo_setup
+
+#libmariadb-dev-compat \
+
+RUN set -x \
+ && apt-get clean \
+ && apt-get update \
+ && apt-get upgrade -y \
+ && apt-get install -y \
+    software-properties-common \
+    apt-transport-https \
+ && add-apt-repository ppa:ubuntu-toolchain-r/test \
+ && apt-get update \
+ && apt-get install -y \
+    binutils-dev \
+    clang-11 \
+    cmake \
+    dnsutils \
+    git \
+    liblua5.1-dev \
+    libluajit-5.1-dev \
+    libmariadb-dev \
+    libssl-dev \
+    libzmq3-dev \
+    luajit-5.1-dev \
+    luarocks \
+    make \
+    mariadb-server \
+    nano \
+    net-tools \
+    pkg-config \
+    python3 \
+    python3-pip \
+    tzdata \
+    zlib1g-dev \
+ && rm -rf /var/lib/apt/lists/*
+
+# Use Clang 11
+ENV CC=/usr/bin/clang-11
+ENV CXX=/usr/bin/clang++-11
+
+# setup the tools to default to latest verson
+RUN set -x \
+ && ${CC} --version \
+ && ${CXX} --version \
+ && python3 --version
+
+# get the Lua BitOp extension installed
+RUN set -x \
+ && git config --global url.https://github.com/.insteadOf git://github.com/ \
+ && luarocks install luabitop
+
+# install TBB (2020.2)
+RUN set -x \
+ && export CXXFLAGS=" -pthread" \
+ && git clone https://github.com/wjakob/tbb.git \
+ && cd tbb/build \
+ && cmake .. \
+ && make -j \
+ && make install
+
+# make the instance the new user
+RUN set -x \
+ && useradd -m ${TOPAZ_USER} --shell=/bin/bash && echo "${TOPAZ_USER}:${TOPAZ_PASSWORD}" | chpasswd \
+ && chown -R ${TOPAZ_USER}:${TOPAZ_GROUP} /opt
+
+USER ${TOPAZ_USER}
+
+# establish our checkout of the code (git version)
+RUN set -x \
+ && git clone -b ${GIT_BRANCH} --recursive ${GIT_REPO}
+
+COPY build.sh ${INSTALL_DIR}/build
+
+RUN set -x \
+ && chown ${TOPAZ_USER}:${TOPAZ_GROUP} build
+
+# EOF
