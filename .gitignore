@@ -7,6 +7,9 @@
 commit
 commit_history
 
+# extra version file
+extra_version
+
 # generated files
 issues.log
 powertop.html
