@@ -46,6 +46,12 @@ xi.settings.main =
     FOV_REWARD_ALLIANCE   = 0, -- Allow Fields of Valor rewards while being a member of an alliance. (default retail behavior: 0)
     GOV_REWARD_ALLIANCE   = 1, -- Allow Grounds of Valor rewards while being a member of an alliance. (default retail behavior: 1)
 
+    -- Daily points / Gobbie mystery box.
+    ENABLE_DAILY_TALLY = 1,  -- Allows acquisition of daily points for gobbie mystery box.
+    DAILY_TALLY_AMOUNT = 10,
+    DAILY_TALLY_LIMIT  = 50000,
+    GOBBIE_BOX_MIN_AGE = 45, -- Minimum character age in days before a character can sign up for Gobbie Mystery Box
+
     -- Records of Eminence
     ENABLE_ROE            = 1, -- Enable Records of Eminence
     ENABLE_ROE_TIMED      = 1, -- Enable 4-hour timed records
@@ -101,6 +107,7 @@ xi.settings.main =
     BAYLD_RATE      = 2.000, -- Multiples bayld earned from quests.
     -- Note: EXP rates are also influenced by conf setting
     EXP_RATE        = 2.000, -- Multiplies exp from script (except FoV/GoV).
+    CAPACITY_RATE   = 2.000, -- Multiplies capacy points gained.
     BOOK_EXP_RATE   = 2.000, -- Multiplies exp from FoV/GoV book pages.
     TABS_RATE       = 2.000, -- Multiplies tabs earned from fov.
     ROE_EXP_RATE    = 2.000, -- Multiplies exp earned from records of eminence.
@@ -113,11 +120,29 @@ xi.settings.main =
     DARK_POWER      = 2.000, -- Multiplies amount drained by Dark Magic.
     ITEM_POWER      = 2.000, -- Multiplies the effect of items such as Potions and Ethers.
     WEAPON_SKILL_POWER  = 2.000, -- Multiplies damage dealt by Weapon Skills.
+
     USE_ADOULIN_WEAPON_SKILL_CHANGES = true, -- true/false. Change to toggle new Adoulin weapon skill damage calculations
+    DISABLE_PARTY_EXP_PENALTY        = false, -- true/false.
 
     -- TRUSTS
-    ENABLE_TRUST_CASTING = 1,
-    ENABLE_TRUST_QUESTS  = 1,
+    ENABLE_TRUST_CASTING           = 1,
+    ENABLE_TRUST_QUESTS            = 1,
+    ENABLE_TRUST_CUSTOM_ENGAGEMENT = 0,
+
+    ENABLE_TRUST_ALTER_EGO_EXTRAVAGANZA          = 0, -- 0 = disabled, 1 = summer/ny, 2 = spring/autumn, 3 = both
+    ENABLE_TRUST_ALTER_EGO_EXTRAVAGANZA_ANNOUNCE = 0, -- 0 = disabled, 1 = add announcement to player login
+    ENABLE_TRUST_ALTER_EGO_EXPO                  = 0, -- 0 = disabled, 1 = expo - HPP/MPP/Status Resistance, 2 = expo plus (not implemented)
+    ENABLE_TRUST_ALTER_EGO_EXPO_ANNOUNCE         = 0, -- 0 = disabled, 1 = add announcement to player login
+
+    TRUST_ALTER_EGO_EXTRAVAGANZA_MESSAGE =
+        "\n \n" .. -- The space between these newlines is intentional
+        "\129\153\129\154 The Alter Ego Extravaganza Campaign is active! \129\154\129\153\n" ..
+        "This is an excellent time to fill out your roster of Trusts!",
+
+    TRUST_ALTER_EGO_EXPO_MESSAGE =
+        "\n \n" .. -- The space between these newlines is intentional
+        "\129\153\129\154 The Alter Ego Expo Campaign is active! \129\154\129\153\n" ..
+        "Trusts gain the benefits of Increased HP, MP, and Status Resistances!",
 
     HARVESTING_BREAK_CHANCE = 10, -- % chance for the sickle to break during harvesting.  Set between 0 and 100.
     EXCAVATION_BREAK_CHANCE = 10, -- % chance for the pickaxe to break during excavation.  Set between 0 and 100.
@@ -138,11 +163,6 @@ xi.settings.main =
     CHEST_MAX_ILLUSION_TIME  = 3600,  -- 1 hour
     CHEST_MIN_ILLUSION_TIME  = 1800,  -- 30 minutes
 
-    -- Sets spawn type for: Behemoth, Fafnir, Adamantoise, King Behemoth, Nidhog, Aspidochelone.
-    -- Use 0 for timed spawns, 1 for force pop only, 2 for both
-    LandKingSystem_NQ = 2,
-    LandKingSystem_HQ = 2,
-
     -- Multiplier to NM lottery spawn chance. (Default 1.0) eg. 0 = disable lottery spawns. -1 for always 100% chance.
     NM_LOTTERY_CHANCE = -1.0,
     -- Multiplier to NM lottery cooldown time (Default 1.0) eg. 2.0 = twice as long. 0 = no cooldowns.
@@ -158,6 +178,9 @@ xi.settings.main =
     RELIC_2ND_UPGRADE_WAIT_TIME = 7200,     -- Wait time for 2nd relic upgrade (stage 2 -> stage 3) in seconds. 7200s = 2 hours.
     RELIC_3RD_UPGRADE_WAIT_TIME = 3600,     -- Wait time for 3rd relic upgrade (stage 3 -> stage 4) in seconds. 3600s = 1 hour.
     FREE_COP_DYNAMIS            = 0,        -- Authorize player to entering inside COP Dynamis without completing COP mission (1 = enable 0 = disable)
+
+    -- LIMBUS SETTINGS
+    COSMO_CLEANSE_BASE_COST     = 15000,    -- Base gil cost for a Cosmo Cleanse from Sagheera
 
     -- QUEST/MISSION SPECIFIC SETTINGS
     AF1_QUEST_LEVEL = 40,    -- Minimum level to start AF1 quest
@@ -191,6 +214,20 @@ xi.settings.main =
     -- Please visit scripts/globals/events/login_campaign.lua for assigning the correct campaign dates.
     ENABLE_LOGIN_CAMPAIGN = 0,
 
+    -- GARRISON
+    GARRISON_LOCKOUT             = 1800,  -- Time in seconds before a new garrison can be started (default: 1800)
+    GARRISON_TIME_LIMIT          = 1800,  -- Time in seconds before lose ongoing garrison (default: 1800)
+    GARRISON_ONCE_PER_WEEK       = 0,     -- Set to 1 to bypass the limit of one garrison per Conquest Tally Week.
+    GARRISON_PARTY_LIMIT         = 18,    -- Set to max party members you want to do garrison (default: 18).
+    GARRISON_NATION_BYPASS       = 0,     -- Set to 1 to bypass the nation requirement.
+    GARRISON_RANK                = 2,     -- Set to minumum Nation Rank to start Garrison (default: 2).
+
+    -- NYZUL
+    RUNIC_DISK_SAVE      = true, -- Allow anyone participating in Nyzul to save progress. Set to false so only initiator can save progress.
+    ENABLE_NYZUL_CASKETS = true, -- Enable Treasure casket pops from NMs.
+    ENABLE_VIGIL_DROPS   = true, -- Enable Vigil Weapon drops from NMs.
+    ACTIVATE_LAMP_TIME   = 6000, -- Time in miliseconds for lamps to stay lit. TODO: Get retail confirmation.
+
     -- MISC
     RIVERNE_PORTERS              = 120,  -- Time in seconds that Unstable Displacements in Cape Riverne stay open after trading a scale.
     LANTERNS_STAY_LIT            = 1200, -- time in seconds that lanterns in the Den of Rancor stay lit.
@@ -205,5 +242,9 @@ xi.settings.main =
     DIG_GRANT_BORE               = 1,    -- Set to 1 to grant bore ability
     ENM_COOLDOWN                 = 120,  -- Number of hours before a player can obtain same KI for ENMs (default: 5 days)
     FORCE_SPAWN_QM_RESET_TIME    = 300,  -- Number of seconds the ??? remains hidden for after the despawning of the mob it force spawns.
-    GOBBIE_BOX_MIN_AGE           = 45,   -- Minimum character age in days before a character can sign up for Gobbie Mystery Box
+    EQUIP_FROM_OTHER_CONTAINERS  = false, -- true/false. Allows equipping items from Mog Satchel, Sack, and Case. Only possible with the use of client addons.
+
+    -- SYSTEM
+    DISABLE_INACTIVITY_WATCHDOG = false, -- true/false. If this is enabled, the watchdog which detects if the main loop isn't being ticked will no longer be able to kill the process.
+    INACTIVITY_WATCHDOG_PERIOD  = 2000,  -- Time in milliseconds which the inactivity watchdog will wait between ticks of the main loop before potentially killing the target process.
 }

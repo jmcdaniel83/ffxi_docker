@@ -1,11 +1,9 @@
 -----------------------------------
 -- NETWORK SETTINGS
 -----------------------------------
--- All settings are attached to the `xi.settings` object. This is published
--- globally, and be accessed from C++ and any script.
+-- All settings are attached to the `xi.settings` object. This is published globally, and be accessed from C++ and any script.
 --
--- This file is concerned mainly with networking between the database, client,
--- and server executables.
+-- This file is concerned mainly with networking between the database, client, and server executables.
 -----------------------------------
 
 xi = xi or {}
@@ -27,6 +25,8 @@ xi.settings.network =
     LOGIN_VIEW_PORT = 54001,
     LOGIN_AUTH_IP   = "0.0.0.0",
     LOGIN_AUTH_PORT = 54231,
+    LOGIN_CONF_IP   = "0.0.0.0",
+    LOGIN_CONF_PORT = 51220,
 
     -- port used for our map instance
     MAP_PORT = 54230,
@@ -34,8 +34,11 @@ xi.settings.network =
     -- port used for our search instance
     SEARCH_PORT = 54002,
 
-    -- Central message server settings (ensure these are the same on both all
-    -- map servers and the central (lobby) server)
+    ENABLE_HTTP = false,
+    HTTP_HOST   = "localhost",
+    HTTP_PORT   = 8088,
+
+    -- Central message server settings (ensure these are the same on both all map servers and the central (lobby) server
     ZMQ_IP   = "127.0.0.1",
     ZMQ_PORT = 54003,
 
@@ -120,3 +123,5 @@ xi.settings.network =
     -- (default is 600000 msecs, 10 minutes)
     TCP_CONNECT_LOCKOUT = 600000
 }
+
+-- EOF
