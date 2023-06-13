@@ -12,6 +12,9 @@ issues.log
 powertop.html
 changelog/
 
+# diff files
+*.bak
+
 # misc
 testing.sh
 
